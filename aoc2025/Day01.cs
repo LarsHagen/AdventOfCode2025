@@ -1,21 +1,15 @@
-using Spectre.Console;
-
 namespace aoc2025;
 
-public class Day01
+public class Day01 : AocDay
 {
-    public static async Task Run()
+    public async Task<(string part1, string part2)> Run(List<string> puzzleInput)
     {
-        var input = await PasteInput.PasteInputPrompt();
-        AnsiConsole.Clear();
-        AnsiConsole.WriteLine("Day 01:");
-
         int position = 50;
         
         int part1ZeroCounter = 0;
         int part2ZeroCounter = 0;
         
-        foreach (var line in input)
+        foreach (var line in puzzleInput)
         {
             if (string.IsNullOrEmpty(line))
                 continue;
@@ -40,8 +34,8 @@ public class Day01
                 part1ZeroCounter++;
             }
         }
-        
-        Console.WriteLine("Part 1: " + part1ZeroCounter);
-        Console.WriteLine("Part 2: " + part2ZeroCounter);
+        return (part1ZeroCounter.ToString(), part2ZeroCounter.ToString());
     }
+
+    public string GetExampleInput() => "L68\nL30\nR48\nL5\nR60\nL55\nL1\nL99\nR14\nL82";
 }

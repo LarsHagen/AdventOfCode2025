@@ -1,30 +1,20 @@
-using Spectre.Console;
-
 namespace aoc2025;
 
 public class PasteInput
 {
     public static async Task<List<string>> PasteInputPrompt()
     {
-        AnsiConsole.Markup("Paste Input or sample and press Enter:");
+        Console.WriteLine("Paste puzzle input and press enter or leave blank to use sample:");
         var lines = new List<string>();
-        
-        lines.Add(Console.ReadLine());
-        var cts = new CancellationTokenSource();
         while (true)
         {
-            var readTask = Task.Run(() => Console.ReadLine());
-            var timeOutTask = Task.Delay(500, cts.Token);
-            var completedTask = await Task.WhenAny(readTask, timeOutTask);
-
-            if (completedTask == timeOutTask)
+            var line = Console.ReadLine();
+            if (string.IsNullOrEmpty(line))
                 break;
             
-            cts.Cancel();
-            cts = new CancellationTokenSource();
-            lines.Add(readTask.Result);
+            lines.Add(line);
         }
-
+        
         return lines;
     }
 }
