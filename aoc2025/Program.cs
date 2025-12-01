@@ -18,7 +18,7 @@ while (true)
         continue;
     }
     
-    var input = await PasteInput.PasteInputPrompt();
+    var input = PasteInput.PasteInputPrompt();
     if (input.Count == 0)
     {
         AnsiConsole.MarkupLine($"[yellow]No input. Using example input.[/]");

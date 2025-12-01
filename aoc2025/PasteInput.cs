@@ -1,10 +1,12 @@
+using Spectre.Console;
+
 namespace aoc2025;
 
 public class PasteInput
 {
-    public static async Task<List<string>> PasteInputPrompt()
+    public static List<string> PasteInputPrompt()
     {
-        Console.WriteLine("Paste puzzle input and press enter or leave blank to use sample:");
+        AnsiConsole.MarkupLine("[blue]Paste puzzle input[/] and press enter or [blue]leave blank to use example input[/]:");
         var lines = new List<string>();
         while (true)
         {
