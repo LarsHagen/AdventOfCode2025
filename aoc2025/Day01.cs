@@ -1,6 +1,6 @@
 namespace aoc2025;
 
-public class Day01 : AocDay
+public class Day01 : IAocDay
 {
     public async Task<(string part1, string part2)> Run(List<string> puzzleInput)
     {

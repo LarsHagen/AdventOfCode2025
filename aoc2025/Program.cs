@@ -3,16 +3,17 @@ using Spectre.Console;
 
 AnsiConsole.Write(new Rule("[bold green]AOC 2025[/]"));
 
-Dictionary<int, AocDay> implementedDays = new()
+Dictionary<int, IAocDay> implementedDays = new()
 {
-    { 1, new Day01() }
+    { 1, new Day01() },
+    { 2, new Day02() },
 };
 
 while (true)
 {
     int day = AnsiConsole.Prompt(new TextPrompt<int>("Please type day to run, (Ctrl+C to exit):"));
 
-    if (!implementedDays.TryGetValue(day, out AocDay aocDay))
+    if (!implementedDays.TryGetValue(day, out IAocDay aocDay))
     {
         AnsiConsole.MarkupLine($"[red]Day {day} not implemented.[/]");
         continue;
