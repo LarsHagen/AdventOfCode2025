@@ -54,7 +54,7 @@ public class Day02 : IAocDay
         
         AnsiConsole.Write(reportTable);
         
-        return Task.FromResult<(string part1, string part2)>((combinedPart1.ToString(),combinedPart2.ToString()));
+        return Task.FromResult((combinedPart1.ToString(),combinedPart2.ToString()));
     }
 
     private HashSet<long> GetAllInValidPart1(long highest)

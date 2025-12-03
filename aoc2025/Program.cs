@@ -7,6 +7,7 @@ Dictionary<int, IAocDay> implementedDays = new()
 {
     { 1, new Day01() },
     { 2, new Day02() },
+    { 3, new Day03() },
 };
 
 while (true)
