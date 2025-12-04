@@ -2,6 +2,6 @@ namespace aoc2025;
 
 public interface IAocDay
 {
-    Task<(string part1, string part2)> Run(List<string> puzzleInput);
+    Task<(object part1, object part2)> Run(List<string> puzzleInput);
     string GetExampleInput();
 }

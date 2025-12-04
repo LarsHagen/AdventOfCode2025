@@ -2,7 +2,7 @@ namespace aoc2025;
 
 public class Day01 : IAocDay
 {
-    public async Task<(string part1, string part2)> Run(List<string> puzzleInput)
+    public async Task<(object part1, object part2)> Run(List<string> puzzleInput)
     {
         int position = 50;
         
@@ -34,7 +34,7 @@ public class Day01 : IAocDay
                 part1ZeroCounter++;
             }
         }
-        return (part1ZeroCounter.ToString(), part2ZeroCounter.ToString());
+        return (part1ZeroCounter, part2ZeroCounter);
     }
 
     public string GetExampleInput() => "L68\nL30\nR48\nL5\nR60\nL55\nL1\nL99\nR14\nL82";

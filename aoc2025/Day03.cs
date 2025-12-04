@@ -2,7 +2,7 @@ namespace aoc2025;
 
 public class Day03 : IAocDay
 {
-    public Task<(string part1, string part2)> Run(List<string> puzzleInput)
+    public async Task<(object part1, object part2)> Run(List<string> puzzleInput)
     {
         List<List<int>> banks = new();
 
@@ -45,7 +45,7 @@ public class Day03 : IAocDay
             part2 += long.Parse(combined);
         }
 
-        return Task.FromResult((part1.ToString(), part2.ToString()));
+        return (part1, part2);
     }
 
     public string GetExampleInput()

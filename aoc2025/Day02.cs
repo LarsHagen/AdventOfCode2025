@@ -4,7 +4,7 @@ namespace aoc2025;
 
 public class Day02 : IAocDay
 {
-    public Task<(string part1, string part2)> Run(List<string> puzzleInput)
+    public async Task<(object part1, object part2)> Run(List<string> puzzleInput)
     {
         string[] rangesRaw = puzzleInput[0].Split(',');
         List<(long start, long end)> ranges = new();
@@ -54,7 +54,7 @@ public class Day02 : IAocDay
         
         AnsiConsole.Write(reportTable);
         
-        return Task.FromResult((combinedPart1.ToString(),combinedPart2.ToString()));
+        return (combinedPart1, combinedPart2);
     }
 
     private HashSet<long> GetAllInValidPart1(long highest)
