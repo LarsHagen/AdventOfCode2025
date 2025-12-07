@@ -9,6 +9,8 @@ Dictionary<int, IAocDay> implementedDays = new()
     { 2, new Day02() },
     { 3, new Day03() },
     { 4, new Day04() },
+    { 5, new Day05() },
+    { 6, new Day06() },
 };
 
 while (true)
@@ -21,7 +23,7 @@ while (true)
         continue;
     }
     
-    var input = PasteInput.PasteInputPrompt();
+    var input = await PasteInput.PasteInputPrompt();
     if (input.Count == 0)
     {
         AnsiConsole.MarkupLine($"[yellow]No input. Using example input.[/]");
