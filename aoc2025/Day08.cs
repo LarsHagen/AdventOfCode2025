@@ -1,3 +1,5 @@
+using Spectre.Console;
+
 namespace aoc2025;
 
 public class Day08 : IAocDay
@@ -6,15 +8,11 @@ public class Day08 : IAocDay
     {
         List<JunctionBox> junctionBoxes = new();
 
-        Console.WriteLine("Parse");
-
         foreach (var position in puzzleInput)
         {
             var split = position.Split(',');
             junctionBoxes.Add(new JunctionBox(int.Parse(split[0]), int.Parse(split[1]), int.Parse(split[2])));
         }
-
-        Console.WriteLine("Calculate distances");
 
         foreach (var junctionBox in junctionBoxes)
         {
@@ -34,108 +32,124 @@ public class Day08 : IAocDay
         int part1 = 0;
         long part2 = 0;
 
-        //for (int i = 0; i < numberShortestConnectionsToFind; i++)
         int i = 0;
-        while (true)
-        {
-
-            Console.WriteLine("Find connection " + i);
-            JunctionBox boxA = null;
-            JunctionBox boxB = null;
-            double shortestDistance = int.MaxValue;
-
-            foreach (var junctionBox in junctionBoxes)
+        AnsiConsole.Progress()
+            .Start(ctx =>
             {
-                foreach (var (otherBox, distance) in junctionBox.DistanceToOtherBoxes)
-                {
-                    if (connections.Contains((junctionBox, otherBox)) || connections.Contains((otherBox, junctionBox)))
-                        continue;
+                var task1 = ctx.AddTask("[green]Part 1[/]");
+                var task2 = ctx.AddTask("[green]Part 2[/]");
 
-                    if (distance < shortestDistance)
-                    {
-                        shortestDistance = distance;
-                        boxA = junctionBox;
-                        boxB = otherBox;
-                    }
-                }
-            }
+                task1.MaxValue = numberShortestConnectionsToFindPart1;
+                task2.MaxValue = puzzleInput.Count;
 
-            if (boxByNetworkId.ContainsKey(boxA) && boxByNetworkId.ContainsKey(boxB))
-            {
-                //Merge networks
-                var networkIdA = boxByNetworkId[boxA];
-                var networkIdB = boxByNetworkId[boxB];
-                if (networkIdA != networkIdB)
+                while (true)
                 {
-                    foreach (var boxedByNetwork in boxByNetworkId)
+                    task1.Value = i;
+
+                    //Task 2 progress is based on number in largest network
+                    var largestNetworkSize = boxByNetworkId
+                        .GroupBy(kv => kv.Value)
+                        .Select(g => g.Count())
+                        .OrderByDescending(size => size)
+                        .FirstOrDefault();
+                    task2.Value = largestNetworkSize;
+
+                    JunctionBox boxA = null;
+                    JunctionBox boxB = null;
+                    double shortestDistance = int.MaxValue;
+
+                    foreach (var junctionBox in junctionBoxes)
                     {
-                        if (boxedByNetwork.Value == networkIdB)
+                        foreach (var (otherBox, distance) in junctionBox.DistanceToOtherBoxes)
                         {
-                            boxByNetworkId[boxedByNetwork.Key] = networkIdA;
+                            if (connections.Contains((junctionBox, otherBox)) ||
+                                connections.Contains((otherBox, junctionBox)))
+                                continue;
+
+                            if (distance < shortestDistance)
+                            {
+                                shortestDistance = distance;
+                                boxA = junctionBox;
+                                boxB = otherBox;
+                            }
+                        }
+                    }
+
+                    if (boxByNetworkId.ContainsKey(boxA) && boxByNetworkId.ContainsKey(boxB))
+                    {
+                        //Merge networks
+                        var networkIdA = boxByNetworkId[boxA];
+                        var networkIdB = boxByNetworkId[boxB];
+                        if (networkIdA != networkIdB)
+                        {
+                            foreach (var boxedByNetwork in boxByNetworkId)
+                            {
+                                if (boxedByNetwork.Value == networkIdB)
+                                {
+                                    boxByNetworkId[boxedByNetwork.Key] = networkIdA;
+                                }
+                            }
+                        }
+                    }
+                    else if (boxByNetworkId.TryGetValue(boxA, out Guid networkA))
+                    {
+                        boxByNetworkId[boxB] = networkA;
+                    }
+                    else if (boxByNetworkId.TryGetValue(boxB, out Guid networkB))
+                    {
+                        boxByNetworkId[boxA] = networkB;
+                    }
+                    else
+                    {
+                        Guid newNetworkId = Guid.NewGuid();
+                        boxByNetworkId[boxA] = newNetworkId;
+                        boxByNetworkId[boxB] = newNetworkId;
+                    }
+
+                    connections.Add((boxA, boxB));
+
+                    i++;
+
+                    if (i == numberShortestConnectionsToFindPart1)
+                    {
+                        var netWorksBySize = boxByNetworkId
+                            .GroupBy(kv => kv.Value)
+                            .Select(g => g.Count())
+                            .OrderByDescending(size => size)
+                            .ToList();
+
+                        part1 = netWorksBySize[0] * netWorksBySize[1] * netWorksBySize[2];
+                    }
+
+                    if (i > numberShortestConnectionsToFindPart1)
+                    {
+                        var numberOfNetworks = boxByNetworkId
+                            .GroupBy(kv => kv.Value)
+                            .Count();
+                        var junctionBoxesNotInNetwork = junctionBoxes.Count - boxByNetworkId.Count;
+
+                        if (junctionBoxesNotInNetwork == 0 && numberOfNetworks == 1)
+                        {
+                            part2 = boxA.X * boxB.X;
+                            break;
                         }
                     }
                 }
-            }
-            else if (boxByNetworkId.TryGetValue(boxA, out Guid networkA))
-            {
-                boxByNetworkId[boxB] = networkA;
-            }
-            else if (boxByNetworkId.TryGetValue(boxB, out Guid networkB))
-            {
-                boxByNetworkId[boxA] = networkB;
-            }
-            else
-            {
-                Guid newNetworkId = Guid.NewGuid();
-                boxByNetworkId[boxA] = newNetworkId;
-                boxByNetworkId[boxB] = newNetworkId;
-            }
 
-            connections.Add((boxA, boxB));
-
-            i++;
-
-            if (i == numberShortestConnectionsToFindPart1)
-            {
-                var netWorksBySize = boxByNetworkId
-                    .GroupBy(kv => kv.Value)
-                    .Select(g => g.Count())
-                    .OrderByDescending(size => size)
-                    .ToList();
-
-                part1 = netWorksBySize[0] * netWorksBySize[1] * netWorksBySize[2];
-            }
-
-            if (i > numberShortestConnectionsToFindPart1)
-            {
-                var numberOfNetworks = boxByNetworkId
-                    .GroupBy(kv => kv.Value)
-                    .Count();
-                var junctionBoxesNotInNetwork = junctionBoxes.Count - boxByNetworkId.Count;
-
-                if (junctionBoxesNotInNetwork == 0 && numberOfNetworks == 1)
-                {
-                    Console.WriteLine("Everything is connected in one network. Last connection made: ");
-                    Console.WriteLine($"Box A: ({boxA.X}, {boxA.Y}, {boxA.Z})");
-                    Console.WriteLine($"Box B: ({boxB.X}, {boxB.Y}, {boxB.Z})");
-                    part2 = boxA.X * boxB.X;
-                    break;
-                }
-            }
-        }
-
-        Console.WriteLine("Order networks by size");
+                task1.Value = task1.MaxValue;
+                task2.Value = task2.MaxValue;
+            });
 
         return (part1, part2);
     }
 
     private class JunctionBox
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Z { get; set; }
+        public long X { get; set; }
+        public long Y { get; set; }
+        public long Z { get; set; }
 
-        public JunctionBox(int x, int y, int z)
+        public JunctionBox(long x, long y, long z)
         {
             X = x;
             Y = y;
