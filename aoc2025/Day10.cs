@@ -1,3 +1,5 @@
+using Google.OrTools.LinearSolver;
+
 namespace aoc2025;
 
 public class Day10 : IAocDay
@@ -157,104 +159,56 @@ public class Day10 : IAocDay
 
     private long GetLeastAmountOfPressesToJoltageLevel(Machine machine)
     {
-        long shortestPressCount = long.MaxValue;
+        Solver solver = Solver.CreateSolver("SCIP");
 
-        PriorityQueue<(int nextButtonIndex, int pressCount, List<int> currentJoltageLevels), int> queue = new();
-
-        var initialDistanceToTarget = machine.Joltage.Sum();
-
+        // Create variables for how many times each button is pressed
+        Variable[] buttonPresses = new Variable[machine.ButtonPressPatterns.Count];
         for (int i = 0; i < machine.ButtonPressPatterns.Count; i++)
         {
-            List<int> initialJoltage = new();
-            for (int j = 0; j < machine.Joltage.Count; j++)
-            {
-                initialJoltage.Add(0);
-            }
-            queue.Enqueue((i, 0, initialJoltage), initialDistanceToTarget);
+            // Each button can be pressed 0 or more times (up to a reasonable maximum)
+            buttonPresses[i] = solver.MakeIntVar(0.0, 1000.0, $"button_{i}");
         }
 
-        Dictionary<string, int> visitedStates = new();
-
-        while (queue.Count > 0)
+        // For each joltage position, create a constraint
+        for (int pos = 0; pos < machine.Joltage.Count; pos++)
         {
+            //Create a constraint that must be the exact joltage
+            Constraint constraint = solver.MakeConstraint(machine.Joltage[pos], machine.Joltage[pos], $"joltage_pos_{pos}");
 
-            //Console.WriteLine(queue.Count);
-            var (nextButtonIndex, pressCount, currentJoltage) = queue.Dequeue();
-
-            bool overshot = false;
-            for (var index = 0; index < currentJoltage.Count; index++)
+            //Find all buttons that affect this position and make them add 1 to the constraint
+            for (int btnIdx = 0; btnIdx < machine.ButtonPressPatterns.Count; btnIdx++)
             {
-                var jultageLevel = currentJoltage[index];
-                var targetJoltageLevel = machine.Joltage[index];
-                if (jultageLevel > targetJoltageLevel)
-                    overshot = true;
-            }
-            if (overshot)
-                continue;
-
-            string currentPatternKey = string.Join("", currentJoltage.Select(b => b.ToString()));
-
-            if (visitedStates.TryGetValue(currentPatternKey, out var count))
-            {
-                if (count < pressCount)
-                    continue;
-            }
-            visitedStates[currentPatternKey] = pressCount;
-
-
-            if (pressCount >= shortestPressCount - 1)
-                continue;
-
-            var nextButton = machine.ButtonPressPatterns[nextButtonIndex];
-
-            //Console.WriteLine("Current pattern: " + string.Join("", currentPattern.Select(b => b ? '#' : '.')));
-            //Console.WriteLine("Pressing button " + nextButtonIndex + " which toggles lights at indexes: " + string.Join(",", nextButton));
-
-            foreach (var i in nextButton)
-            {
-                currentJoltage[i]++;
-            }
-
-            //Console.WriteLine("New pattern: " + string.Join("", currentPattern.Select(b => b ? '#' : '.')));
-
-
-
-
-            pressCount++;
-
-            if (currentJoltage.SequenceEqual(machine.Joltage))
-            {
-                Console.WriteLine("Pattern matched with press count: " + pressCount);
-                if (pressCount < shortestPressCount)
+                if (machine.ButtonPressPatterns[btnIdx].Contains(pos))
                 {
-                    shortestPressCount = pressCount;
+                    constraint.SetCoefficient(buttonPresses[btnIdx], 1);
                 }
             }
-            else
-            {
-                var distanceToTarget = 0;
-                for (var index = 0; index < currentJoltage.Count; index++)
-                {
-                    var distance = machine.Joltage[index] - currentJoltage[index];
-                    distanceToTarget += distance;
-                }
-
-                Console.WriteLine($"{distanceToTarget}");
-
-                for (int i = 0; i < machine.ButtonPressPatterns.Count; i++)
-                {
-                    List<int> joltageCopy = new(currentJoltage);
-                    queue.Enqueue((i, pressCount, joltageCopy), distanceToTarget);
-                }
-            }
-
-            //Console.ReadLine();
-
-
-
         }
 
-        return shortestPressCount;
+        // Setup objective. Make each variable contribute to the objective
+        Objective objective = solver.Objective();
+        for (int i = 0; i < buttonPresses.Length; i++)
+        {
+            objective.SetCoefficient(buttonPresses[i], 1);
+        }
+        objective.SetMinimization(); //Find the least amount of button presses
+
+        // Solve
+        Solver.ResultStatus resultStatus = solver.Solve();
+
+        if (resultStatus == Solver.ResultStatus.OPTIMAL)
+        {
+            //Get value of each variable used by the solver and sum them up
+            long total = 0;
+            for (int i = 0; i < machine.ButtonPressPatterns.Count; i++)
+            {
+                long presses = (long)Math.Round(buttonPresses[i].SolutionValue());
+                total += presses;
+            }
+            return total;
+        }
+
+        throw new Exception("No solution found for joltage matching");
     }
 
     private class Machine
